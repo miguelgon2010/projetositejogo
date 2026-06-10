@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundo dos Videogames</title>
+    <title>Mundo dos Games | Consoles Mais Vendidos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>🎮 Universo dos Videogames</h1>
-        <p>Descubra os consoles mais vendidos da história, seus maiores sucessos e os grandes exclusivos.</p>
+        <h1>Mundo dos Games</h1>
+        <p>Os consoles mais comprados do mercado e seus principais títulos</p>
     </header>
 
-    <main>
-        <section class="controls-list">
-            <h2>Selecione um Console para ver os detalhes:</h2>
-            <div class="buttons-container">
-                <button onclick="mostrarDados('ps2')">PlayStation 2</button>
-                <button onclick="mostrarDados('switch')">Nintendo Switch</button>
-                <button onclick="mostrarDados('ps5')">PlayStation 5</button>
-            </div>
-        </section>
-
-        <section id="detalhes-console" class="hidden">
-            <h2 id="titulo-console">Escolha um videogame acima</h2>
-            <div class="info-grupo">
-                <h3>🏆 Jogos Mais Comprados</h3>
-                <ul id="jogos-populares"></ul>
-            </div>
-            <div class="info-grupo">
-                <h3>💎 Jogos Exclusivos</h3>
-                <ul id="jogos-exclusivos"></ul>
-            </div>
-        </section>
+    <!-- O JavaScript vai usar este container para desenhar os cards com as imagens -->
+    <main class="container">
+        <!-- Os cards serão gerados dinamicamente aqui -->
     </main>
 
+    <!-- Modal para exibir os jogos do console selecionado -->
+    <div id="gamesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modalTitle">Jogos do Console</h2>
+            
+            <h3>Exclusivos de Peso</h3>
+            <ul id="exclusiveGamesList"></ul>
+
+            <h3>Outros Sucessos</h3>
+            <ul id="popularGamesList"></ul>
+        </div>
+    </div>
+
+    <!-- Vinculação do arquivo JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
