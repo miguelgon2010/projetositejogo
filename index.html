@@ -1,37 +1,534 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundo dos Games | Consoles Mais Vendidos</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundo dos Games | Consoles Mais Vendidos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#e63329;--red-dark:#b52720;
+  --bg:#0d0d0f;--surface:#161618;--surface2:#1e1e22;--surface3:#27272c;
+  --text:#f0eff4;--muted:#8a8a96;--border:rgba(255,255,255,0.07);
+  --green:#00e676;--gold:#f5c842;--yellow:#ffb300;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:2.5rem 2rem 2rem;text-align:center;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red)}
+.eyebrow{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:.6rem}
+header h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+header h1 span{color:var(--red)}
+header p{margin-top:.6rem;color:var(--muted);font-size:.95rem}
+
+/* CONTROLS (SEARCH & FILTER) */
+.controls-container{max-width:1200px;margin:2rem auto 0;padding:0 1.5rem;display:flex;flex-direction:column;gap:1rem;align-items:center;justify-content:space-between}
+@media(min-width: 768px){ .controls-container{flex-direction:row;} }
+
+.search-box{position:relative;width:100%;max-width:400px}
+.search-box input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;transition:border-color .2s,box-shadow .2s}
+.search-box input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(230,51,41,0.2)}
+
+.filter-buttons{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.filter-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:.6rem 1.2rem;font-size:.85rem;font-weight:600;border-radius:10px;cursor:pointer;transition:all .2s}
+.filter-btn:hover{border-color:rgba(255,255,255,0.2);color:var(--text)}
+.filter-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* GRID */
+.container{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.25rem;max-width:1200px;margin:1.5rem auto 2.5rem;padding:0 1.5rem}
+.no-results{grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);font-size:.95rem}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform .2s,border-color .2s;display:flex;flex-direction:column;cursor:pointer}
+.card:hover{transform:translateY(-4px);border-color:rgba(230,51,41,.4)}
+.card-img-wrap{background:var(--surface2);height:170px;display:flex;align-items:center;justify-content:center;padding:1.1rem;position:relative;overflow:hidden}
+.card-img-wrap img{max-height:130px;max-width:100%;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5));transition:transform .3s}
+.card:hover .card-img-wrap img{transform:scale(1.07)}
+.rank-badge{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.card-body{padding:1rem 1.1rem 1.3rem;display:flex;flex-direction:column;flex:1}
+.card-name{font-size:1rem;font-weight:700;line-height:1.2}
+.card-sales{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+.card-sales strong{color:var(--green);font-weight:600}
+.card-meta{display:flex;align-items:center;gap:8px;margin-top:.5rem}
+.meta-year{font-size:.7rem;color:var(--muted);background:var(--surface3);padding:2px 7px;border-radius:4px}
+.meta-maker{font-size:.7rem;color:var(--muted)}
+
+/* Action Buttons Grid */
+.btn-grid{display:grid;grid-template-columns:1fr 40px;gap:8px;margin-top:auto;padding-top:.85rem}
+.btn-ver{width:100%;background:transparent;border:1px solid var(--red);color:var(--red);padding:.55rem 1rem;font-size:.82rem;font-weight:600;border-radius:8px;cursor:pointer;transition:background .2s,color .2s;letter-spacing:.03em}
+.btn-ver:hover{background:var(--red);color:#fff}
+.btn-info-console{background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;transition:all .2s}
+.btn-info-console:hover{background:var(--muted);color:var(--bg)}
+
+/* MODAL OVERLAY */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(5px)}
+.modal-overlay.active{display:flex}
+
+/* MODAL BOX */
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;position:relative;animation:slideUp .22s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{padding:1.3rem 1.5rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);border-radius:20px 20px 0 0;z-index:1}
+.modal-header h2{font-size:1.1rem;font-weight:700}
+.close-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;color:var(--muted);font-size:1.2rem;background:var(--surface2);border:none;transition:background .2s,color .2s;flex-shrink:0}
+.close-btn:hover{background:var(--red);color:#fff}
+.modal-body{padding:1.1rem 1.5rem 1.6rem}
+
+/* SECTION TITLE */
+.sec-title{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:.65rem}
+.sec-title:not(:first-child){margin-top:1.4rem}
+
+/* GAME LIST */
+ul.game-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+ul.game-list li{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;font-size:.84rem;display:flex;align-items:center;gap:10px;transition:border-color .15s}
+ul.game-list li:hover{border-color:rgba(230,51,41,.3)}
+
+/* GAME IMAGE */
+.game-img{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--surface3);flex-shrink:0;border:1px solid var(--border)}
+
+.game-info{flex:1;min-width:0}
+.game-name{font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-rating{display:flex;align-items:center;gap:4px;margin-top:2px}
+.stars{color:var(--gold);font-size:.7rem;letter-spacing:1px}
+.score-num{font-size:.7rem;color:var(--muted)}
+.score-badge{font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:2px}
+.score-green{background:#1a3d22;color:#00e676}
+.score-yellow{background:#3d2e00;color:#ffb300}
+.score-red{background:#3d1a1a;color:#ff6b6b}
+
+/* Game Info Trigger Button */
+.btn-game-details{background:var(--surface3);border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.btn-game-details:hover{color:var(--text);border-color:var(--red);background:rgba(230,51,41,0.1)}
+
+/* INFO DESCRIPTIONS FOR DETAILS BOX */
+.info-text-box{background:var(--surface2);border:1px solid var(--border);padding:1rem;border-radius:12px;font-size:0.9rem;line-height:1.5;color:var(--text)}
+.info-detail-item{margin-bottom:0.75rem}
+.info-detail-item strong{color:var(--red)}
+
+/* FOOTER */
+footer{text-align:center;padding:2rem;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);margin-top:1rem}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Mundo dos Games</h1>
-        <p>Os consoles mais comprados do mercado e seus principais títulos</p>
-    </header>
 
-    <!-- O JavaScript vai usar este container para desenhar os cards com as imagens -->
-    <main class="container">
-        <!-- Os cards serão gerados dinamicamente aqui -->
-    </main>
+<header>
+  <div class="eyebrow">Top consoles da história</div>
+  <h1>Mundo dos <span>Games</span></h1>
+  <p>Os consoles mais vendidos do mercado e seus principais títulos</p>
+</header>
 
-    <!-- Modal para exibir os jogos do console selecionado -->
-    <div id="gamesModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 id="modalTitle">Jogos do Console</h2>
-            
-            <h3>Exclusivos de Peso</h3>
-            <ul id="exclusiveGamesList"></ul>
+<div class="controls-container">
+  <div class="filter-buttons">
+    <button class="filter-btn active" onclick="filterMaker('all')">Todos</button>
+    <button class="filter-btn" onclick="filterMaker('Sony')">Sony</button>
+    <button class="filter-btn" onclick="filterMaker('Nintendo')">Nintendo</button>
+    <button class="filter-btn" onclick="filterMaker('Microsoft')">Microsoft</button>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Buscar por console ou jogo..." oninput="handleSearch()">
+  </div>
+</div>
 
-            <h3>Outros Sucessos</h3>
-            <ul id="popularGamesList"></ul>
-        </div>
+<main class="container" id="container"></main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modalTitle">Jogos do Console</h2>
+      <button class="close-btn" id="closeBtn" aria-label="Fechar">×</button>
     </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
 
-    <!-- Vinculação do arquivo JavaScript -->
-    <script src="script.js"></script>
+<footer>Mundo dos Games © 2026 — Notas baseadas no Metacritic.</footer>
+
+<script>
+// ──────────────────────────────────────────────
+//  DATA
+// ──────────────────────────────────────────────
+const consolesData = [
+  {
+    id:"ps2", name:"PlayStation 2", sales:"155 milhões", rank:"#1 Mais Vendido",
+    year:2000, maker:"Sony",
+    image:"https://images.tcdn.com.br/img/img_prod/1211726/playstation_2_slim_seminovo_277_1_cdad97bf064ac254c387a1da08a1ac61.png",
+    description: "O console de mesa mais vendido de todos os tempos. Revolucionou o mercado ao trazer um leitor de DVD integrado acessível e uma biblioteca massiva e inigualável de títulos marcantes.",
+    exclusives:[
+      {name:"God of War II", score:93, image:"https://greenhillszone.com/wp-content/uploads/2012/08/932295_76312_front.jpg", genre:"Ação/Aventura", details:"Um dos ápices gráficos do PS2, expandindo a jornada brutal de Kratos contra o panteão grego."},
+      {name:"Shadow of the Colossus", score:91, image:"https://greenhillszone.com/wp-content/uploads/2012/04/shadow-of-the-colossus-box-art-pal.jpg", genre:"Aventura/Poético", details:"Uma obra de arte minimalista onde o jogador deve encontrar e derrotar 16 gigantes majestosos."},
+      {name:"God of War", score:94, image:"https://m.media-amazon.com/images/I/91VKfyGGkYL.jpg", genre:"Ação/Hack 'n Slash", details:"O início da lendária saga do Fantasma de Esparta em sua busca por vingança contra Ares."},
+      {name:"Gran Turismo 4", score:89, image:"https://www.gran-turismo.com/images/c/i1UkJZak4T1rSEc.jpg", genre:"Corrida/Simulador", details:"O ápice técnico de simulação automobilística no console, contendo centenas de carros."},
+      {name:"ICO", score:90, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg8d4_8tQ3zU6DiuIAZ4-mMQqKXrZ4AO1fFQ&s", genre:"Aventura/Puzzle", details:"Um jogo atmosférico focado na história de um garoto com chifres tentando escapar de um castelo."},
+      {name:"Jak and Daxter", score:90, image:"https://carrefourbr.vtexassets.com/arquivos/ids/181635918/image-0.jpg?v=638699952218200000", genre:"Plataforma", details:"Desenvolvido pela Naughty Dog, um mundo aberto vibrante sem telas de carregamento para a época."},
+    ],
+    popular:[
+      {name:"GTA: San Andreas", score:95, image:"https://upload.wikimedia.org/wikipedia/pt/thumb/d/d3/Grand_Theft_Auto_San_Andreas_capa.png/250px-Grand_Theft_Auto_San_Andreas_capa.png", genre:"Ação/Mundo Aberto", details:"Um marco cultural absoluto que definiu o gênero de mundo aberto com o icônico CJ em San Andreas."},
+      {name:"Resident Evil 4", score:96, image:"https://m.media-amazon.com/images/I/71iXh6wFHNL.jpg", genre:"Ação/Survival Horror", details:"Revolucionou a indústria dos videogames ao adotar a câmera sobre o ombro pela primeira vez."},
+      {name:"Need for Speed: Underground 2", score:82, image:"https://http2.mlstatic.com/D_NQ_NP_990243-MLB84167639445_042025-O.webp", genre:"Corrida/Tuning", details:"O game definitivo da cultura de carros modificados e rachas noturnos com trilha sonora impecável."},
+      {name:"Guitar Hero II", score:92, image:"https://assetsio.gnwcdn.com/co97zc.jpg?width=2048&height=2048&fit=bounds&quality=85&format=jpg&auto=webp", genre:"Ritmo/Musical", details:"Febre mundial nos anos 2000 que transformou salas de estar em palcos de rock através de controles de guitarra."},
+      {name:"Pro Evolution Soccer 6", score:88, image:"https://http2.mlstatic.com/D_NQ_NP_930055-MLB90219831839_082025-O.webp", genre:"Esportes/Futebol", details:"O lendário 'Bomba Patch' se alimentou dessa base mecânica que representou a era de ouro do futebol virtual."},
+    ]
+  },
+  {
+    id:"switch", name:"Nintendo Switch", sales:"140 milhões", rank:"#2 Mais Vendido",
+    year:2017, maker:"Nintendo",
+    image:"https://cdn.shopify.com/s/files/1/0641/9388/8321/files/50076891_779669.png?v=1776228095",
+    description: "Inovador console híbrido que funciona tanto conectado à TV quanto como um portátil. Consolidou de vez o poder das grandes franquias intelectuais da Nintendo onde quer que você esteja.",
+    exclusives:[
+      {name:"The Legend of Zelda: Breath of the Wild", score:97, image:"https://m.media-amazon.com/images/I/61ax3Tz3SxL._AC_UF1000,1000_QL80_.jpg", genre:"Aventura/Mundo Aberto", details:"Redefiniu os conceitos de liberdade e interatividade física em mundos abertos na indústria moderna."},
+      {name:"Super Mario Odyssey", score:97, image:"https://m.media-amazon.com/images/I/81fM46LsJqL.jpg", genre:"Plataforma 3D", details:"Uma celebração genial da exploração 3D de Mario, introduzindo Cappy para possuir objetos e inimigos."},
+      {name:"Animal Crossing: New Horizons", score:90, image:"https://m.media-amazon.com/images/I/81KtQcxwLSL.jpg", genre:"Simulação de Vida", details:"Um fenômeno de fuga social acolhedor lançado em um momento crítico global, permitindo criar ilhas personalizadas."},
+      {name:"Pokémon Scarlet / Violet", score:72, image:"https://m.media-amazon.com/images/I/61ExSKHi9qL._AC_UF1000,1000_QL80_.jpg", genre:"RPG", details:"A primeira transição da linha principal de Pokémon para uma estrutura totalmente em mundo aberto."},
+      {name:"Metroid Dread", score:88, image:"https://m.media-amazon.com/images/I/6197INpxQaL._AC_UF1000,1000_QL80_.jpg", genre:"Metroidvania", details:"O retorno triunfal de Samus Aran em um estilo clássico de progressão lateral focado em tensão e ação precisa."},
+      {name:"Splatoon 3", score:83, image:"https://m.media-amazon.com/images/I/81dRB41yHrL.jpg", genre:"Tiro Competitivo", details:"Batalhas frenéticas de território baseadas em tinta com novas opções de movimentos fluidos."},
+    ],
+    popular:[
+      {name:"Mario Kart 8 Deluxe", score:92, image:"https://m.media-amazon.com/images/I/91vd7WQ1acL.jpg", genre:"Corrida/Arcade", details:"O jogo mais vendido do console, reunindo pistas históricas e suporte contínuo por anos."},
+      {name:"Minecraft", score:90, image:"https://m.media-amazon.com/images/I/71dIHv1zh7L.jpg", genre:"Sandbox/Construção", details:"O ajuste perfeito para a portabilidade do Switch, permitindo construir mundos inteiros na palma da mão."},
+      {name:"Stardew Valley", score:89, image:"https://m.media-amazon.com/images/I/81Fq4GFO7cL._AC_UF1000,1000_QL80_.jpg", genre:"Simulação de Fazenda", details:"Um clássico RPG indie reconfortante de administração rural que roda com fluidez invejável no Switch."},
+      {name:"Among Us", score:85, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQqLA6-eAXA-sxkAnbafTd7NB4DKaIsqiMrg&s", genre:"Party Game/Dedução", details:"Divertido jogo multiplayer de traição e cooperação perfeito para jogatinas rápidas portáteis."},
+      {name:"Hollow Knight", score:90, image:"https://m.media-amazon.com/images/I/71S7A53yb9L._AC_UF1000,1000_QL80_.jpg", genre:"Metroidvania/Indie", details:"Um dos indies mais aclamados de todos os tempos, oferecendo jogabilidade desafiadora e arte impecável."},
+    ]
+  },
+  {
+    id:"ps4", name:"PlayStation 4", sales:"117 milhões", rank:"#3 Mais Vendido",
+    year:2013, maker:"Sony",
+    image:"https://images.tcdn.com.br/img/img_prod/1211726/playstation_4_fat_500gb_seminovo_623_1_60c84cfb7ab29fa9dfd8ce90d6e61349.png",
+    description: "Dominou a sua geração com foco massivo nos jogadores e produções originais cinematográficas de altíssimo orçamento de seus estúdios de primeira linha.",
+    exclusives:[
+      {name:"God of War (2018)", score:94, image:"https://image.api.playstation.com/vulcan/img/rnd/202010/2217/LsaRVLF2IU2L1FNtu9d3MKLq.jpg", genre:"Ação/Aventura", details:"Revenção madura da franquia trazendo mitologia nórdica e um plano de câmera contínuo sem cortes."},
+      {name:"Marvel's Spider-Man", score:87, image:"https://image.api.playstation.com/vulcan/ap/rnd/202011/0402/C784xeOFo2wViCf4m5bxgoeH.png", genre:"Ação/Mundo Aberto", details:"A melhor mecânica de teias da história dos games acoplada a uma narrativa vibrante do herói aracnídeo."},
+      {name:"The Last of Us Part II", score:93, image:"https://image.api.playstation.com/vulcan/img/rnd/202010/2618/w48z6bzefZPrRcJHc7L8SO66.png", genre:"Ação/Sobrevivência", details:"Uma história visceral, polêmica e tecnicamente assustadora sobre as consequências da vingança cíclica."},
+      {name:"Bloodborne", score:92, image:"https://image.api.playstation.com/cdn/UP9000/CUSA00900_00/9EJsLXyKS0S1BRey5nwQBOuYr6EDRbGX.png", genre:"Action RPG/Souls", details:"A prima obra gótica e lovecraftiana da FromSoftware, apresentando um combate muito mais rápido e agressivo."},
+      {name:"Horizon Zero Dawn", score:89, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpd97r70GASSC7KmZDCH6nEFCD6nFMxkS5tw&s", genre:"Ação/Mundo Aberto", details:"Uma nova propriedade intelectual vibrante misturando sociedades tribais do futuro com dinossauros robóticos."},
+      {name:"Ghost of Tsushima", score:83, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEM4LxjS_KMMWimalUVoYrK_7vWZf2s7aAng&s", genre:"Ação/Mundo Aberto", details:"Uma carta de amor ao cinema de samurai clássico ambientada durante as invasões mongóis no Japão antigo."},
+    ],
+    popular:[
+      {name:"GTA V", score:97, image:"https://m.media-amazon.com/images/I/81htlTqEckL._AC_UF1000,1000_QL80_.jpg", genre:"Ação/Mundo Aberto", details:"Gigante comercial que atravessou gerações mantendo-se vivo e no topo devido à força de seu modo Online."},
+      {name:"Red Dead Redemption 2", score:97, image:"https://image.api.playstation.com/cdn/UP1004/CUSA03041_00/Hpl5MtwQgOVF9vJqlfui6SDB5Jl4oBSq.png", genre:"Faroeste/Mundo Aberto", details:"Um simulador do velho oeste hiper-detalhado com uma das narrativas mais emocionantes já criadas em mídias modernas."},
+      {name:"The Witcher 3", score:92, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb0luKkWyzTO6oBg_DBlhrjJQlYTD9Z3FoBw&s", genre:"RPG de Ação", details:"Definiu os padrões modernos para missões secundárias ricas e narrativas maduras em RPGs ocidentais de grande escala."},
+      {name:"Dark Souls III", score:89, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ6WcxdtHY0pz1N6LgecNKLYvkj1BFpcfTfg&s", genre:"Action RPG", details:"A conclusão épica da trilogia que solidificou de vez o gênero de alta dificuldade no mainstream mundial."},
+      {name:"Call of Duty: Warzone", score:81, image:"https://image.api.playstation.com/vulcan/ap/rnd/202205/2800/iQGgKYUg9YwjPVNM0kE8jeRN.jpg", genre:"Battle Royale", details:"Battle royale massivo e gratuito que ditou o ritmo competitivo de tiros em primeira pessoa por anos."},
+    ]
+  },
+  {
+    id:"xbox360", name:"Xbox 360", sales:"84 milhões", rank:"#4 Mais Vendido",
+    year:2005, maker:"Microsoft",
+    image:"https://www.pngall.com/wp-content/uploads/2016/07/Xbox-Free-Download-PNG.png",
+    description: "Responsável por popularizar os ecossistemas modernos de redes online consolidadas com a Xbox Live, além de introduzir conquistas digitais e jogos indies por download.",
+    exclusives:[
+      {name:"Halo 3", score:94, image:"https://store-images.s-microsoft.com/image/apps.8340.69990143727992974.1a013d7b-2e62-4f4d-a174-a07a940b8151.a7e03e01-7cc2-4818-b25f-fb14bdad643c", genre:"Tiro em 1ª Pessoa", details:"Fenômeno cultural colossal da Microsoft que concluiu com perfeição a trilogia original do Master Chief."},
+      {name:"Gears of War 2", score:93, image:"https://store-images.s-microsoft.com/image/apps.45516.65595136073047161.857e51a5-2b52-4c0e-8ac2-92b6b4609fc2.d6aede50-9d8f-4813-9417-fab3a1d88e74", genre:"Tiro em 3ª Pessoa", details:"Aprimorou os sistemas de cobertura tática da indústria adicionando uma campanha espetacular e brutal."},
+      {name:"Fable II", score:89, image:"https://store-images.s-microsoft.com/image/apps.4730.66274487452813675.86971dec-0f03-42bb-b657-322859f064f4.130a3c09-259d-4961-8a49-70176caf3c2b", genre:"Action RPG", details:"Um RPG charmoso onde suas escolhas morais alteravam radicalmente sua aparência física e o mundo ao redor."},
+      {name:"Forza Motorsport 4", score:91, image:"https://m.media-amazon.com/images/I/71MdG7zNsyL._AC_UF894,1000_QL80_.jpg", genre:"Corrida/Simulador", details:"Considerado por muitos entusiastas o ápice técnico e estrutural da série de simulação automobilística pura."},
+      {name:"Halo: Reach", score:91, image:"https://store-images.s-microsoft.com/image/apps.28661.70854037491002259.a70a576f-8657-49f4-bf56-2bf1592f891a.e874df7e-5eef-4a3f-b732-00f4ab343918?q=90&w=480&h=270", genre:"Tiro em 1ª Pessoa", details:"O emocionante e melancólico projeto de despedida da desenvolvedora original Bungie da franquia Halo."},
+      {name:"Gears of War", score:94, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlNKFMInyDuHzMKkWm6cv7l1B7yw1kKcVcKQ&s", genre:"Tiro em 3ª Pessoa", details:"O game que definiu a estética pesada e o design de tiro baseado em coberturas para toda uma geração de consoles."},
+    ],
+    popular:[
+      {name:"The Elder Scrolls V: Skyrim", score:96, image:"https://m.media-amazon.com/images/I/91NVln5RVFL._AC_UF1000,1000_QL80_.jpg", genre:"RPG de Mundo Aberto", details:"Um dos RPGs mais imersivos e influentes do século, permitindo total liberdade no continente gélido de Skyrim."},
+      {name:"Call of Duty: Black Ops", score:87, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMKgqDZhzw5aeLfy22kEwjR2-1-yTTvSS-kg&s", genre:"Tiro em 1ª Pessoa", details:"Uma das tramas mais intrigantes da Guerra Fria casada com o modo zumbis cooperativo viciante."},
+      {name:"Minecraft: Xbox 360 Edition", score:82, image:"https://m.media-amazon.com/images/I/716mcbaBxIL._AC_UF1000,1000_QL80_.jpg", genre:"Sandbox", details:"O ponto de virada que provou que o fenômeno dos blocos de computador pertencia também às televisões de sala de estar."},
+      {name:"Batman: Arkham City", score:96, image:"https://cdn.awsli.com.br/2500x2500/266/266788/produto/28721654/2c530c228e.jpg", genre:"Ação/Aventura", details:"O simulador definitivo do Cavaleiro das Trevas em uma Arkham aberta e cheia de vilões icônicos."},
+      {name:"Portal 2", score:95, image:"https://store-images.s-microsoft.com/image/apps.5455.70065201881521124.581c0d77-3f54-488c-af00-fb50158626e0.7d0bc5ab-b2c6-4c26-8f48-8fbe106f018d", genre:"Quebra-cabeça/Ficção", details:"História brilhante e bem-humorada com mecânicas físicas de portais espaciais perfeitas e desafiadoras."},
+    ]
+  },
+  {
+    id:"xboxseries", name:"Xbox Series S / X", sales:"30 milhões+", rank:"#5 Geração Atual",
+    year:2020, maker:"Microsoft",
+    image:"https://i.guim.co.uk/img/media/a66e8b1d116ec0328d6d86b8004ed738a7fc6be1/0_53_1080_648/master/1080.png?width=1200&height=1200&quality=85&auto=format&fit=crop&s=81a92ba629145a08eda24b7968bb5415",
+    description: "A dupla de consoles modernos da Microsoft focados em alto desempenho arquitetônico (Series X) e custo-benefício acessível inteiramente digital (Series S), integrados nativamente ao ecossistema robusto do Xbox Game Pass.",
+    exclusives:[
+      {name:"Forza Horizon 5", score:92, image:"https://store-images.s-microsoft.com/image/apps.56329.13734397844529069.202e3fc9-37d6-4853-a58b-fabe504b71e8.b2447b97-7903-48de-8a49-9669d0495c4f", genre:"Corrida/Arcade", details:"Um show visual deslumbrante ambientado no México, misturando velocidade arcade fluida e belos cenários."},
+      {name:"Halo Infinite", score:87, image:"https://store-images.s-microsoft.com/image/apps.50670.13727851868390641.c9cc5f66-aff8-406c-af6b-440838730be0.d205e025-5444-4eb1-ae46-571ae6895928?q=90&w=480&h=270", genre:"Tiro em 1ª Pessoa", details:"Traz de volta a jogabilidade clássica da arena competitiva de Halo combinada com uma campanha em mapa semiaberto."},
+      {name:"Hi-Fi RUSH", score:87, image:"https://store-images.s-microsoft.com/image/apps.54250.13592675470908447.79efa8be-9602-4911-867c-3b27d26ad414.5083e064-e3e9-4a23-bb10-684f7be75d15", genre:"Ação Rítmica", details:"Surpresa indie cheia de estilo artístico onde todo o mundo, combates e cortes de espadas andam no compasso exato da música."},
+      {name:"Starfield", score:83, image:"https://store-images.s-microsoft.com/image/apps.35187.13567343664224659.1eb6fdf9-8a0b-4344-a135-ab17dfa3c609.c83b6d6a-56c3-4c3f-8b31-456cfb21c3b7", genre:"RPG Espacial", details:"A primeira nova franquia espacial da Bethesda em décadas, permitindo explorar mais de mil planetas pela galáxia."},
+      {name:"Microsoft Flight Simulator", score:90, image:"https://store-images.s-microsoft.com/image/apps.34988.14293123921570736.739af26b-0b56-4d3a-8d57-149d26c2cc05.9152e068-0d00-4190-b0f9-d7f60ff9a8c5", genre:"Simulação de Voo", details:"Mapeia o planeta Terra inteiro em escala 1:1 real usando dados em nuvem para simulações aéreas fotorrealistas."},
+    ],
+    popular:[
+      {name:"Elden Ring", score:96, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5Nou4oHurJxom1LW1QZvXbvtsRRzpNTD28g&s", genre:"Action RPG", details:"Vencedor do prêmio de Jogo do Ano, combina a jogabilidade souls desafiadora com as Terras Intermédias de mundo aberto."},
+      {name:"Baldur's Gate 3", score:96, image:"https://image.api.playstation.com/vulcan/ap/rnd/202302/2321/ba706e54d68d10a0eb6ab7c36cdad9178c58b7fb7bb03d28.png", genre:"RPG de Turno", details:"Incrível liberdade de escolha inspirada nas regras tradicionais de Dungeons & Dragons de tabuleiro de RPG."},
+      {name:"Cyberpunk 2077", score:86, image:"https://image.api.playstation.com/vulcan/ap/rnd/202111/3013/cKZ4tKNFj9C00giTzYtH8PF1.png", genre:"RPG de Ação", details:"Brilha na atual geração com o traçado de raios gráfico avançado e a densidade populacional realista de Night City."},
+      {name:"Diablo IV", score:86, image:"https://store-images.s-microsoft.com/image/apps.27418.14058691289303304.7aeef6ea-ac74-41c2-a37d-5c5c1e0eb55d.e73f1084-51de-4266-8084-2f8787ae9c3f", genre:"RPG/Action", details:"A jornada sombria de exploração e caça por espólios lendários contra os exércitos profanos criados por Lilith."},
+    ]
+  },
+  {
+    id:"ps5", name:"PlayStation 5", sales:"65 milhões", rank:"#6 Geração Atual",
+    year:2020, maker:"Sony",
+    image:"https://gmedia.playstation.com/is/image/SIEPDC/ps5-product-thumbnail-01-en-14sep21?$facebook$",
+    description: "Destaca-se pelo armazenamento SSD de velocidade ultra rápida que elimina carregamentos tradicionais e pelo inovador controle DualSense com respostas táteis realistas.",
+    exclusives:[
+      {name:"Demon's Souls (Remake)", score:92, image:"https://image.api.playstation.com/vulcan/img/rnd/202011/1717/GemRaOZaCMhGxQ9dRhnQQyT5.png", genre:"Action RPG", details:"Recriação fotorrealista impressionante do clássico cult original de 2009 que deu início à febre Souls."},
+      {name:"Returnal", score:86, image:"https://image.api.playstation.com/vulcan/ap/rnd/202011/1621/4ItSbqJE88H019Ua3WBQKLF8.png", genre:"Roguelike/Tiro", details:"Desafiador labirinto de ficção científica onde a protagonista revive em um planeta mutável toda vez que morre."},
+      {name:"Ratchet & Clank: Rift Apart", score:88, image:"https://image.api.playstation.com/vulcan/ap/rnd/202101/2921/fWiBmwK5WnQa5XG3K4aWeMpt.png", genre:"Plataforma/Ação", details:"Uma vitrine técnica absurda do SSD saltando instantaneamente entre universos e fendas interdimensionais sem travar."},
+      {name:"Spider-Man: Miles Morales", score:85, image:"https://image.api.playstation.com/vulcan/ap/rnd/202008/1420/HcLcfeQBXd2RiQaCeWQDCIFN.jpg?w=440", genre:"Ação/Mundo Aberto", details:"Acompanha a evolução de Miles sob o manto do herói com habilidades bioelétricas incríveis no inverno nova-iorquino."},
+      {name:"Astro's Playroom", score:82, image:"https://image.api.playstation.com/vulcan/ap/rnd/202502/1908/3d17c33239dab88c7e2f24af50140b3f6fa555e6030d5704.png", genre:"Plataforma", details:"Vem pré-instalado no aparelho e serve como demonstração brilhante de todas as funcionalidades sensoriais do controle."},
+      {name:"Final Fantasy XVI", score:87, image:"https://image.api.playstation.com/vulcan/ap/rnd/202211/3007/lgFVhRm5BfoX02pRUt3lSmLV.png", genre:"RPG de Ação", details:"Uma abordagem mais madura e focada na ação em tempo real com batalhas colossais cinematográficas entre os Eikons."},
+    ],
+    popular:[
+      {name:"Elden Ring", score:96, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5Nou4oHurJxom1LW1QZvXbvtsRRzpNTD28g&s", genre:"Action RPG", details:"A fantástica e premiada jornada da FromSoftware pelas Terras Intermédias com mundo aberto detalhado."},
+      {name:"Baldur's Gate 3", score:96, image:"https://image.api.playstation.com/vulcan/ap/rnd/202302/2321/ba706e54d68d10a0eb6ab7c36cdad9178c58b7fb7bb03d28.png", genre:"RPG de Turno", details:"Histórias profundamente mutáveis baseadas em rolagens de dados e relacionamentos marcantes entre heróis."},
+      {name:"Cyberpunk 2077", score:86, image:"https://image.api.playstation.com/vulcan/ap/rnd/202111/3013/cKZ4tKNFj9C00giTzYtH8PF1.png", genre:"RPG de Ação", details:"Encontrou sua redenção na geração atual, oferecendo excelente desempenho técnico em uma distopia futurista densa."},
+      {name:"God of War: Ragnarök", score:94, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRC8OQqqKpqXmoSXlG1mQe8cbPYyLmlzUH6gA&s", genre:"Ação/Aventura", details:"A magnífica conclusão emocional e destrutiva das jornadas nórdicas travadas por Kratos e seu filho Atreus."},
+      {name:"Hogwarts Legacy", score:84, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWqwj76DUlqWa0wQ2ThKECj1jifd01pZrARg&s", genre:"Mundo Aberto/Magia", details:"Permite que os fãs vivenciem sua própria rotina acadêmica de feitiçaria em Hogwarts no século XIX."},
+    ]
+  },
+  {
+    id:"gba", name:"Game Boy Advance", sales:"81 milhões", rank:"#7 Portátil Icônico",
+    year:2001, maker:"Nintendo",
+    image:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Nintendo-Game-Boy-Advance-Milky-Blue-FL.png/960px-Nintendo-Game-Boy-Advance-Milky-Blue-FL.png?_=20220904053815",
+    description: "Considerado um 'Super Nintendo de bolso', marcou a era dourada dos jogos portáteis de sprites em 2D pixel-art extremamente refinados.",
+    exclusives:[
+      {name:"Pokémon FireRed / LeafGreen", score:81, image:"https://m.media-amazon.com/images/I/71iLh5opvHL._AC_UF1000,1000_QL80_.jpg", genre:"RPG", details:"Remake perfeito da primeira geração do Game Boy original adicionando cores vibrantes e ajustes modernos."},
+      {name:"Golden Sun", score:91, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVlw7Kzhpz28DigXwPTUchPHqaC-WOHmMIHQ&s", genre:"RPG de Turno", details:"Uma das propriedades intelectuais de RPG originais mais bonitas e adoradas graças ao uso criativo de feitiços de mapas."},
+      {name:"Metroid Fusion", score:92, image:"https://static.wikia.nocookie.net/metroid/images/1/1a/Metroid_Fusion_cover.png/revision/latest?cb=20140522012953&path-prefix=pt-br", genre:"Metroidvania", details:"Introduziu elementos tensos de perseguição de uma cópia parasita maligna de Samus chamada SA-X."},
+      {name:"Castlevania: Aria of Sorrow", score:91, image:"https://upload.wikimedia.org/wikipedia/pt/8/8c/Aria_of_Sorrow.jpg", genre:"Metroidvania", details:"Um dos melhores jogos da série apresentando o sistema inovador de roubar almas de monstros para ganhar poderes."},
+      {name:"Fire Emblem", score:86, image:"https://upload.wikimedia.org/wikipedia/en/e/e2/GBA_Fire_Emblem_Box.jpg", genre:"Estratégia Tática", details:"O game que finalmente introduziu a clássica série ocidental de RPG tático de turnos com morte permanente."},
+      {name:"The Legend of Zelda: Minish Cap", score:89, image:"https://upload.wikimedia.org/wikipedia/pt/2/21/The_Legend_of_Zelda_The_Minish_Cap_capa.png", genre:"Aventura/Ação", details:"Uma bela aventura onde Link usa um capuz mágico falante para encolher ao tamanho do minúsculo povo Minish."},
+    ],
+    popular:[
+      {name:"Pokémon Ruby / Sapphire", score:82, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNKPCk5-dnyF4nb4WujWT26KXpmxZtSuUBBA&s", genre:"RPG", details:"A expansão da terceira geração na região tropical de Hoenn, adicionando batalhas em duplas dinâmicas."},
+      {name:"Mega Man Zero", score:82, image:"https://upload.wikimedia.org/wikipedia/en/9/92/Mega_Man_Zero_cover.jpg", genre:"Ação/Plataforma", details:"Aventura lateral futurista de altíssima dificuldade estrelando o lendário guerreiro Zero com seu sabre."},
+      {name:"Kirby: Nightmare in Dream Land", score:78, image:"https://m.media-amazon.com/images/I/61-XJA3KQuL.jpg", genre:"Plataforma", details:"Um remake colorido e absurdamente bem animado da clássica aventura da bolinha rosa do Ninho dos Sonhos."},
+      {name:"Final Fantasy Tactics Advance", score:87, image:"https://upload.wikimedia.org/wikipedia/en/c/c4/FinalFantasyTacticsAdvanceGBACoverArtUS.jpg", genre:"Estratégia", details:"História mágica e profunda de crianças transportadas para um reino de fantasia sob regras de combate rígidas."},
+      {name:"Advance Wars", score:92, image:"https://assetsio.gnwcdn.com/advance-wars-gba.jpg?width=2048&height=2048&fit=bounds&quality=85&format=jpg&auto=webp", genre:"Estratégia por Turnos", details:"Combates viciantes e táticos de exércitos militares carismáticos perfeitos para partidas rápidas fora de casa."},
+    ]
+  },
+  {
+    id:"n64", name:"Nintendo 64", sales:"33 milhões", rank:"#8 Clássico Eterno",
+    year:1996, maker:"Nintendo",
+    image:"https://upload.wikimedia.org/wikipedia/commons/0/02/N64-Console-Set.png",
+    description: "Pioneiro absoluto na transição de franquias 2D tradicionais para jogabilidades tridimensionais complexas, além de estabelecer a cultura competitiva de sofá para quatro jogadores.",
+    exclusives:[
+      {name:"The Legend of Zelda: Ocarina of Time", score:99, image:"https://upload.wikimedia.org/wikipedia/pt/1/17/The_Legend_of_Zelda_Ocarina_of_Time_capa.png", genre:"Ação/Aventura", details:"Amplamente considerado um dos jogos mais perfeitos e influentes de todos os tempos, criando a trava de mira 3D."},
+      {name:"Super Mario 64", score:94, image:"https://upload.wikimedia.org/wikipedia/pt/7/7b/Super_Mario_64_front.jpg", genre:"Plataforma 3D", details:"A cartilha fundamental de como controlar e mover câmeras tridimensionais em mundos virtuais interativos."},
+      {name:"GoldenEye 007", score:96, image:"https://upload.wikimedia.org/wikipedia/pt/4/4d/GoldenEye_007_front.jpg", genre:"Tiro em 1ª Pessoa", details:"Provou que tiros em primeira pessoa funcionavam brilhantemente em consoles e criou amizades intensas no multiplayer."},
+      {name:"The Legend of Zelda: Majora's Mask", score:95, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREzIOkZv4id2I2C4dggwzBfPLpqK-lnc1Jsw&s", genre:"Ação/Aventura", details:"Uma sequência sombria e melancólica baseada em um ciclo tenso apocalíptico repetitivo de três dias corridos."},
+      {name:"Banjo-Kazooie", score:92, image:"https://upload.wikimedia.org/wikipedia/pt/7/75/Banjo-Kazooie_cover.png", genre:"Plataforma", details:"Desenvolvido pela Rare, elevou o gênero de coleta de itens a níveis fantásticos de carisma e trilha sonora."},
+      {name:"Donkey Kong 64", score:90, image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooYX-7dmbOjDLYhUDkHVALqda_mw0sWTKVQ&s", genre:"Plataforma", details:"A maior caça a colecionáveis em mundos abertos do console reunindo toda a carismática família de gorilas."},
+    ],
+    popular:[
+      {name:"Mario Kart 64", score:83, image:"https://upload.wikimedia.org/wikipedia/pt/a/a9/Mario_Kart_64_front.jpg", genre:"Corrida/Arcade", details:"Marcou gerações com pistas icônicas como a Estrada Arco-Íris e divertidos modos de batalha de balões."},
+      {name:"Star Fox 64", score:88, image:"https://jogoveio.com.br/wp-content/uploads/2018/09/star-fox-64-caixa.jpg", genre:"Tiro em Trilho", details:"Ação espacial de naves com atuações de vozes memoráveis e o icônico comando de manobra 'Do a barrel roll!'."},
+      {name:"Super Smash Bros.", score:79, image:"https://upload.wikimedia.org/wikipedia/pt/2/2a/Super_Smash_Bros.jpg", genre:"Luta/Brawler", details:"A genial ideia original de colocar mascotes famosos da Nintendo para se enfrentarem e se jogarem para fora das arenas."},
+      {name:"Conker's Bad Fur Day", score:92, image:"https://upload.wikimedia.org/wikipedia/pt/3/37/Conker%27s_Bad_Fur_Day_cover.png", genre:"Plataforma/Adulto", details:"Um jogo bizarro e hilário recheado de humor ácido, paródias de cinema e situações bizarras inesperadas."},
+      {name:"Perfect Dark", score:97, image:"https://upload.wikimedia.org/wikipedia/pt/4/45/Perfect_Dark_cover.png", genre:"Tiro em 1ª Pessoa", details:"Sucessor espiritual de GoldenEye com espionagem futurista de ficção científica extremamente avançado em mecânicas."},
+    ]
+  },
+  {
+    id:"xboxone", name:"Xbox One", sales:"51 milhões", rank:"#9 Mais Vendido",
+    year:2013, maker:"Microsoft",
+    image:"https://images.tcdn.com.br/img/img_prod/1211726/xbox_one_fat_500gb_seminovo_1337_1_5f49f4dd1205a012714169e8095fea68.png",
+    description: "Apesar de um início conturbado, deu a volta por cima ao criar as bases do ecossistema moderno da marca com retrocompatibilidade total de discos anteriores e o lançamento do Game Pass.",
+    exclusives:[
+      {name:"Halo 5: Guardians", score:84, image:"https://store-images.s-microsoft.com/image/apps.10920.69279545232152045.f1a4a87c-fcc9-4b7c-a620-f6c56eb2d5ad.537d404f-d551-430c-8000-9a4c657bf354", genre:"Tiro em 1ª Pessoa", details:"Focou fortemente em combates online cooperativos de equipes e em uma jogabilidade de arena multiplayer competitiva muito rápida."},
+      {name:"Ori and the Blind Forest", score:88, image:"https://store-images.s-microsoft.com/image/apps.4128.71930896676716842.b6740fa4-0359-4ca8-9e17-5d4e45c2d497.ffa292b1-579d-4a08-99ef-308ab7791f79", genre:"Metroidvania", details:"Um dos jogos indies artisticamente mais belos e emocionantes da história, com trilha sonora orquestrada de tirar o fôlego."},
+      {name:"Forza Horizon 4", score:92, image:"https://store-images.s-microsoft.com/image/apps.36093.14339303838396367.725ab8dd-f8b7-4a29-a351-45ebd5d66edd.ba2a2523-7f32-4f92-a83d-26097b7b6ca1", genre:"Corrida/Arcade", details:"Introduziu um sistema dinâmico e revolucionário de estações do ano que mudavam completamente o mapa da Grã-Bretanha."},
+      {name:"Gears 5", score:84, image:"https://store-images.s-microsoft.com/image/apps.59007.65494054591008504.85c215a9-ad75-4103-b284-e70cd9beb4e1.065578c7-e130-446d-a592-043a178aa8cb", genre:"Tiro em 3ª Pessoa", details:"Expandiu horizontes incluindo áreas abertas para exploração com bote de vento e foco narrativo profundo na origem de Kait."},
+      {name:"Cuphead", score:87, image:"https://store-images.s-microsoft.com/image/apps.37905.13670972585585116.7f29dc82-c969-4e89-aaf9-7c0e3f52d890.2e5a9c92-cf00-4c10-ae28-264c564478c3", genre:"Ação/Run and Gun", details:"Obra-prima desenhada inteiramente à mão no estilo de animações clássicas dos anos 1930 combinada com extrema dificuldade."},
+      {name:"Sea of Thieves", score:69, image:"https://m.media-amazon.com/images/I/6189+dNLdBL._AC_UF1000,1000_QL80_.jpg", genre:"Aventura Pirata", details:"Um divertido sandbox focado em navegação compartilhada online onde tripulações buscam tesouros e enfrentam monstros marinhos."},
+    ],
+    popular:[
+      {name:"The Witcher 3", score:92, image:"https://store-images.s-microsoft.com/image/apps.13986.69531514236615003.534d4f71-03cb-4592-929a-b00a7de28b58.c4152bcf-9088-4e35-98b5-9a2e44b927c5", genre:"RPG de Ação", details:"A sensacional caçada final de Geralt de Rívia que roda lindamente com melhorias dedicadas no ecossistema Xbox."},
+      {name:"Red Dead Redemption 2", score:97, image:"https://store-images.s-microsoft.com/image/apps.46799.68182501197884443.ac728a87-7bc1-4a0d-8bc6-0712072da93c.14d5d1c1-dd27-4d79-a5d2-8398e779c391", genre:"Faroeste/Mundo Aberto", details:"Ficou conhecido por alcançar resoluções nativas de altíssima nitidez de imagem no modelo aprimorado Xbox One X."},
+      {name:"Sekiro: Shadows Die Twice", score:90, image:"https://m.media-amazon.com/images/I/716DQ6dS9XL._AC_UF1000,1000_QL80_.jpg", genre:"Ação/Aventura", details:"Um combate rítmico frenético de espadas e rebatidas milimétricas ambientado no Japão mitológico da era Sengoku."},
+      {name:"Doom Eternal", score:88, image:"https://store-images.s-microsoft.com/image/apps.33238.14607483449828807.1bf8995c-7221-490e-a6d4-8718054337ce.b335eb86-4cf4-4aca-96ec-8a1dbc19e496", genre:"Tiro em 1ª Pessoa", details:"Uma dança de combate veloz e agressiva contra demônios onde parar de correr significa morte instantânea."},
+      {name:"Control", score:82, image:"https://store-images.s-microsoft.com/image/apps.3830.14595226950892239.a8daf266-2756-4f3f-9606-6b7b7cef7920.4911518a-4a55-43bb-b9ba-972ae1946dd5", genre:"Ação/Ficção", details:"Aventura paranormal misteriosa dentro de um prédio mutável usando poderes de telecinese e deformação física de cenários."},
+    ]
+  }
+];
+
+// Estado atual de filtros e buscas
+let currentMakerFilter = 'all';
+let currentSearchQuery = '';
+
+// ──────────────────────────────────────────────
+//  HELPERS
+// ──────────────────────────────────────────────
+function scoreColor(s){
+  if(s>=85) return 'score-green';
+  if(s>=70) return 'score-yellow';
+  return 'score-red';
+}
+function scoreStars(s){
+  const full = Math.round(s/20);
+  return '★'.repeat(full) + '☆'.repeat(5-full);
+}
+
+// ──────────────────────────────────────────────
+//  RENDER CARDS
+// ──────────────────────────────────────────────
+function renderCards(){
+  const container = document.getElementById('container');
+  container.innerHTML='';
+
+  const filteredData = consolesData.filter(c => {
+    const matchMaker = (currentMakerFilter === 'all' || c.maker.toLowerCase() === currentMakerFilter.toLowerCase());
+    
+    const query = currentSearchQuery.toLowerCase().trim();
+    const matchConsoleName = c.name.toLowerCase().includes(query);
+    const matchExclusiveGames = c.exclusives.some(g => g.name.toLowerCase().includes(query));
+    const matchPopularGames = c.popular.some(g => g.name.toLowerCase().includes(query));
+    
+    return matchMaker && (matchConsoleName || matchExclusiveGames || matchPopularGames);
+  });
+
+  if(filteredData.length === 0) {
+    container.innerHTML = `<div class="no-results">Nenhum console encontrado para os critérios inseridos.</div>`;
+    return;
+  }
+
+  filteredData.forEach(c=>{
+    const card = document.createElement('div');
+    card.className='card';
+    // Removemos o clique geral do card para evitar bugs ao clicar nos botões individuais
+    card.innerHTML=`
+      <div class="card-img-wrap" onclick="openModal('${c.id}')">
+        <span class="rank-badge">${c.rank}</span>
+        <img src="${c.image}" alt="${c.name}" loading="lazy"
+             onerror="this.style.opacity='.25';this.removeAttribute('onerror')">
+      </div>
+      <div class="card-body">
+        <div class="card-name" onclick="openModal('${c.id}')">${c.name}</div>
+        <div class="card-sales">Vendas: <strong>${c.sales}</strong></div>
+        <div class="card-meta">
+          <span class="meta-year">${c.year}</span>
+          <span class="meta-maker">${c.maker}</span>
+        </div>
+        <div class="btn-grid">
+          <button class="btn-ver" onclick="openModal('${c.id}')">Ver Jogos</button>
+          <button class="btn-info-console" title="Ver Detalhes do Console" onclick="openConsoleDetails('${c.id}')">ℹ</button>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+// ──────────────────────────────────────────────
+//  CONTROLS HANDLERS
+// ──────────────────────────────────────────────
+function filterMaker(maker) {
+  currentMakerFilter = maker;
+  
+  const buttons = document.querySelectorAll('.filter-btn');
+  buttons.forEach(btn => {
+    if(btn.textContent.trim() === maker || (maker === 'all' && btn.textContent.trim() === 'Todos')) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  renderCards();
+}
+
+function handleSearch() {
+  currentSearchQuery = document.getElementById('searchInput').value;
+  renderCards();
+}
+
+// ──────────────────────────────────────────────
+//  RENDER GAME LIST ITEM
+// ──────────────────────────────────────────────
+function gameItemHTML(consoleId, game, type, index){
+  const col = scoreColor(game.score);
+  
+  const imgEl = (game.image && game.image !== 'LINK_DA_IMAGEM')
+    ? `<img class="game-img" src="${game.image}" alt="${game.name}" onerror="this.style.display='none'">` 
+    : `<div class="game-img" style="display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)">🎮</div>`;
+
+  return `
+    <li>
+      ${imgEl}
+      <div class="game-info">
+        <div class="game-name">${game.name}</div>
+        <div class="game-rating">
+          <span class="stars">${scoreStars(game.score)}</span>
+          <span class="score-num">${game.score}/100</span>
+          <span class="score-badge ${col}">${col==='score-green'?'Ótimo':col==='score-yellow'?'Bom':'Regular'}</span>
+        </div>
+      </div>
+      <button class="btn-game-details" title="Ver Detalhes do Jogo" onclick="openGameDetails('${consoleId}', '${type}', ${index})">ℹ</button>
+    </li>`;
+}
+
+// ──────────────────────────────────────────────
+//  OPEN MODALS
+// ──────────────────────────────────────────────
+function openModal(id){
+  const c = consolesData.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('modalTitle').textContent = `Jogos de ${c.name}`;
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <p class="sec-title">Exclusivos de Peso</p>
+    <ul class="game-list" id="excList">
+      ${c.exclusives.map((g, idx)=>gameItemHTML(id, g, 'exclusives', idx)).join('')}
+    </ul>
+    <p class="sec-title">Outros Sucessos</p>
+    <ul class="game-list" id="popList">
+      ${c.popular.map((g, idx)=>gameItemHTML(id, g, 'popular', idx)).join('')}
+    </ul>`;
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+
+function openConsoleDetails(id) {
+  const c = consolesData.find(x=>x.id===id);
+  if(!c) return;
+  
+  document.getElementById('modalTitle').textContent = `Detalhes: ${c.name}`;
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <div class="info-text-box">
+      <div class="info-detail-item"><strong>Fabricante:</strong> ${c.maker}</div>
+      <div class="info-detail-item"><strong>Ano de Lançamento:</strong> ${c.year}</div>
+      <div class="info-detail-item"><strong>Volume de Vendas:</strong> ${c.sales}</div>
+      <div class="info-detail-item"><strong>Status Histórico:</strong> ${c.rank}</div>
+      <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+      <p style="color:var(--text)">${c.description || 'Informações detalhadas não cadastradas.'}</p>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+
+function openGameDetails(consoleId, type, index) {
+  const c = consolesData.find(x=>x.id===consoleId);
+  if(!c) return;
+  const game = c[type][index];
+  if(!game) return;
+
+  document.getElementById('modalTitle').textContent = game.name;
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <div style="display:flex; gap:15px; margin-bottom:1.5rem; background:var(--surface2); padding:1rem; border-radius:12px; border:1px solid var(--border)">
+      <img src="${game.image}" alt="${game.name}" style="max-width:100px; max-height:140px; border-radius:6px; object-fit:contain; background:var(--surface3)">
+      <div>
+        <p class="info-detail-item" style="margin-top:0.5rem"><strong>Gênero:</strong> ${game.genre || 'Não informado'}</p>
+        <p class="info-detail-item"><strong>Avaliação Metacritic:</strong> <span class="score-badge ${scoreColor(game.score)}" style="padding:2px 6px; border-radius:4px; font-weight:bold">${game.score}/100</span></p>
+      </div>
+    </div>
+    <p class="sec-title">Resumo / Detalhes</p>
+    <div class="info-text-box">
+      <p>${game.details || 'Sem detalhes descritivos adicionais cadastrados para este título.'}</p>
+    </div>
+    <button class="btn-ver" style="margin-top:1.5rem" onclick="openModal('${consoleId}')">← Voltar para a lista</button>
+  `;
+}
+
+// ──────────────────────────────────────────────
+//  CLOSE MODAL
+// ──────────────────────────────────────────────
+function closeModal(){
+  document.getElementById('modal').classList.remove('active');
+  document.body.style.overflow='';
+}
+document.getElementById('closeBtn').addEventListener('click',closeModal);
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// Inicializar os Cards
+renderCards();
+</script>
 </body>
 </html>
