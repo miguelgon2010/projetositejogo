@@ -4,17 +4,42 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --red:     #e63329;
-  --red-dk:  #b52720;
-  --bg:      #0d0d0f;
-  --s1:      #161618;
-  --s2:      #1e1e22;
-  --s3:      #27272c;
-  --text:    #f0eff4;
-  --muted:   #8a8a96;
-  --border:  rgba(255,255,255,0.07);
-  --green:   #00e676;
-  --gold:    #f5c842;
+  /* Cores das marcas */
+  --sony-blue: #00439c;
+  --microsoft-green: #107c10;
+  --nintendo-red: #e63329;
+  --default-red: #e63329;
+
+  /* Modificamos a sua cor padrão (--red) para ser dinâmica! */
+  --red: var(--default-red);
+  --red-dark: #b52720;
+  
+  --bg:#0d0d0f;--surface:#161618;--surface2:#1e1e22;--surface3:#27272c;
+  --text:#f0eff4;--muted:#8a8a96;--border:rgba(255,255,255,0.07);
+  --green:#00e676;--gold:#f5c842;--yellow:#ffb300;
+}
+
+/* Quando o body ganhar a classe do JS, a variável --red muda de cor magicamente */
+body.tema-sony { --red: var(--sony-blue); --red-dark: #002d69; }
+body.tema-microsoft { --red: var(--microsoft-green); --red-dark: #0b540b; }
+body.tema-nintendo { --red: var(--nintendo-red); --red-dark: #b52720; }
+
+/* Modificadores para o body */
+body.tema-sony { --cor-marca: var(--sony-blue); }
+body.tema-microsoft { --cor-marca: var(--microsoft-green); }
+body.tema-nintendo { --cor-marca: var(--nintendo-red); }
+
+/* Regras para forçar os elementos a usarem a cor dinâmica */
+header::before { background: var(--cor-marca) !important; }
+.eyebrow { color: var(--cor-marca) !important; }
+header h1 span { color: var(--cor-marca) !important; }
+.search-box input:focus { border-color: var(--cor-marca) !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); }
+.filter-btn.active{background:var(--red) !important;color:#fff;border-color:var(--red) !important}
+.card:hover{transform:translateY(-4px);border-color:var(--red)}
+.rank-badge { background: var(--cor-marca) !important; }
+.btn-ver { border-color: var(--cor-marca) !important; color: var(--cor-marca) !important; }
+.btn-ver:hover { background: var(--cor-marca) !important; color: #fff !important; }
+.sec-title { color: var(--cor-marca) !important;
   --radius:  14px;
   --trans:   0.22s ease;
 }

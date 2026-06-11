@@ -254,7 +254,7 @@ const consolesData = [
   {
     id:"ps5", name:"PlayStation 5", sales:"65 milhões", rank:"#6 Geração Atual",
     year:2020, maker:"Sony",
-    image:"https://gmedia.playstation.com/is/image/SIEPDC/ps5-product-thumbnail-01-en-14sep21?$facebook$",
+    image:"https://lh5.googleusercontent.com/proxy/gdj7YZFN500RGybHSPHCZMjYBfANJDG8g0f1I9l1Vc4_8n5CluTwQAKt6_IiucnwxtiuMNg1QvloZTP13nxOo34XSCby0Z9EnojTPhg2_a68wZyPFa3_K8-PTfvl0LeUU2TI7f058m458RF-7p6eGx7J4KmHSMC4XgBsI4euj1s7TJOdiO64gYVp_Wm5b8MPFHqoE0WQOTgg8Bb_GyhWS8Se0OlDxQd7fQ0xTw",
     description: "Destaca-se pelo armazenamento SSD de velocidade ultra rápida que elimina carregamentos tradicionais e pelo inovador controle DualSense com respostas táteis realistas.",
     exclusives:[
       {name:"Demon's Souls (Remake)", score:92, image:"https://image.api.playstation.com/vulcan/img/rnd/202011/1717/GemRaOZaCMhGxQ9dRhnQQyT5.png", genre:"Action RPG", details:"Recriação fotorrealista impressionante do clássico cult original de 2009 que deu início à febre Souls."},
@@ -407,6 +407,14 @@ function renderCards(){
 //  CONTROLS HANDLERS
 // ──────────────────────────────────────────────
 function filterMaker(maker) {
+  document.body.classList.remove('tema-sony', 'tema-microsoft', 'tema-nintendo');
+  if (maker.toLowerCase() === 'sony') {
+    document.body.classList.add('tema-sony');
+  } else if (maker.toLowerCase() === 'microsoft') {
+    document.body.classList.add('tema-microsoft');
+  } else if (maker.toLowerCase() === 'nintendo') {
+    document.body.classList.add('tema-nintendo');
+  }
   currentMakerFilter = maker;
   
   const buttons = document.querySelectorAll('.filter-btn');
