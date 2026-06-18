@@ -549,8 +549,157 @@ document.getElementById('closeBtn').addEventListener('click',closeModal);
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-// Inicializar os Cards
+// ──────────────────────────────────────────────
+//  SISTEMA DO PAINEL ADMINISTRATIVO (CRUD)
+// ──────────────────────────────────────────────
+let isPanelOpen = false;
+
+function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  isPanelOpen = !isPanelOpen;
+  panel.classList.toggle('active', isPanelOpen);
+  if(isPanelOpen) populateAdminConsoleSelect();
+}
+
+function populateAdminConsoleSelect() {
+  const selectConsole = document.getElementById('admConsoleSelect');
+  selectConsole.innerHTML = '<option value="">-- Selecione o Console --</option>';
+  consolesData.forEach(c => {
+    selectConsole.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+  document.getElementById('admGameSelect').innerHTML = '<option value="">-- Selecione o Jogo --</option>';
+  clearAdminForm();
+}
+
+function handleAdminConsoleChange() {
+  const consoleId = document.getElementById('admConsoleSelect').value;
+  const gameSelect = document.getElementById('admGameSelect');
+  gameSelect.innerHTML = '<option value="">-- Selecione o Jogo --</option>';
+  clearAdminForm();
+  
+  if(!consoleId) return;
+  const c = consolesData.find(item => item.id === consoleId);
+  
+  c.exclusives.forEach((g, idx) => {
+    gameSelect.innerHTML += `<option value="exclusives-${idx}">[Exclusivo] ${g.name}</option>`;
+  });
+  c.popular.forEach((g, idx) => {
+    gameSelect.innerHTML += `<option value="popular-${idx}">[Popular] ${g.name}</option>`;
+  });
+}
+
+function handleAdminGameChange() {
+  const consoleId = document.getElementById('admConsoleSelect').value;
+  const gameValue = document.getElementById('admGameSelect').value;
+  
+  if(!consoleId || !gameValue) { clearAdminForm(); return; }
+  
+  const [category, index] = gameValue.split('-');
+  const c = consolesData.find(item => item.id === consoleId);
+  const game = c[category][index];
+  
+  document.getElementById('admInputName').value = game.name;
+  document.getElementById('admInputScore').value = game.score;
+}
+
+function clearAdminForm() {
+  document.getElementById('admInputName').value = '';
+  document.getElementById('admInputScore').value = '';
+}
+
+function saveAdminChanges() {
+  const consoleId = document.getElementById('admConsoleSelect').value;
+  const gameValue = document.getElementById('admGameSelect').value;
+  const newName = document.getElementById('admInputName').value.trim();
+  const newScore = parseInt(document.getElementById('admInputScore').value);
+
+  if(!consoleId || !gameValue || !newName || isNaN(newScore)) {
+    alert("Por favor, selecione o jogo e preencha todos os campos corretamente.");
+    return;
+  }
+
+  const [category, index] = gameValue.split('-');
+  const c = consolesData.find(item => item.id === consoleId);
+  
+  // Update (U do CRUD)
+  c[category][index].name = newName;
+  c[category][index].score = newScore;
+  
+  alert("Jogo modificado com sucesso!");
+  
+  // Recarrega a tela usando a sua função original
+  if(typeof renderCards === "function") renderCards(); 
+  
+  // Atualiza o modal de lista se ele estiver aberto na tela
+  if(document.getElementById('modal').classList.contains('active')) {
+    openModal(consoleId); 
+  }
+  toggleAdminPanel();
+}
+
+function deleteAdminGame() {
+  const consoleId = document.getElementById('admConsoleSelect').value;
+  const gameValue = document.getElementById('admGameSelect').value;
+
+  if(!consoleId || !gameValue) {
+    alert("Selecione um jogo primeiro para poder excluí-lo.");
+    return;
+  }
+
+  if(confirm("Tem certeza que deseja deletar este jogo do site?")) {
+    const [category, index] = gameValue.split('-');
+    const c = consolesData.find(item => item.id === consoleId);
+    
+    // Delete (D do CRUD)
+    c[category].splice(index, 1);
+    
+    alert("Jogo excluído permanentemente!");
+    
+    // Recarrega a tela usando a sua função original
+    if(typeof renderCards === "function") renderCards();
+    
+    // Atualiza o modal de lista se ele estiver aberto na tela
+    if(document.getElementById('modal').classList.contains('active')) {
+      openModal(consoleId);
+    }
+    toggleAdminPanel();
+  }
+}
+
+// Inicializar os Cards Originais do seu site
 renderCards();
 </script>
+
+<!-- BOTÃO DO PAINEL ADM (Fixado no canto superior direito) -->
+<button class="adm-trigger-btn" onclick="toggleAdminPanel()">⚙️ Painel ADM</button>
+
+<!-- MENU LATERAL RETRÁTIL DO PAINEL ADM -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-panel-header">
+    <h3>Painel do Administrador</h3>
+    <button onclick="toggleAdminPanel()">×</button>
+  </div>
+  <div class="admin-panel-body">
+    <label>1. Escolha o Console:</label>
+    <select id="admConsoleSelect" onchange="handleAdminConsoleChange()"></select>
+
+    <label>2. Escolha o Jogo:</label>
+    <select id="admGameSelect" onchange="handleAdminGameChange()">
+      <option value="">-- Selecione o Jogo --</option>
+    </select>
+
+    <label>Novo Nome do Jogo:</label>
+    <input type="text" id="admInputName" placeholder="Ex: Resident Evil 4 Remake">
+
+    <label>Nova Nota (Metacritic):</label>
+    <input type="number" id="admInputScore" min="0" max="100" placeholder="Ex: 95">
+
+    <div class="admin-actions">
+      <button class="adm-btn-save" onclick="saveAdminChanges()">Salvar Alterações</button>
+      <button class="adm-btn-delete" onclick="deleteAdminGame()">Excluir Jogo</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -376,3 +376,118 @@ footer {
   .filters { justify-content: flex-start; }
   .stats-bar { gap: 1.5rem; }
 }
+/* BOTÃO DO PAINEL ADM */
+.adm-trigger-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 50;
+  transition: all 0.2s;
+}
+.adm-trigger-btn:hover {
+  border-color: var(--red);
+  background: var(--surface3);
+}
+
+/* PAINEL LATERAL DO ADMINISTRADOR */
+.admin-panel {
+  position: fixed;
+  top: 0;
+  right: -350px;
+  width: 320px;
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s ease;
+}
+.admin-panel.active {
+  right: 0;
+}
+.admin-panel-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.admin-panel-header h3 {
+  font-size: 1rem;
+  color: var(--red);
+}
+.admin-panel-header button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.admin-panel-header button:hover { color: var(--text); }
+
+.admin-panel-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+}
+.admin-panel-body label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.admin-panel-body select, 
+.admin-panel-body input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* BOTÕES DO CRUD */
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.adm-btn-save {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.adm-btn-delete {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.adm-btn-save:hover, .adm-btn-delete:hover {
+  opacity: 0.9;
+  background-color: var(--red);
+  color: #fff;
+}
